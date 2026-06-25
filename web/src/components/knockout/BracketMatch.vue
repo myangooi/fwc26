@@ -1,5 +1,8 @@
 <template>
   <div class="bg-gray-900 rounded border border-gray-700 text-sm w-full">
+    <div v-if="heading" class="px-2 py-0.5 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-700">
+      {{ heading }}
+    </div>
     <!-- Finished match: show score, non-interactive -->
     <template v-if="match.status === 'FINISHED'">
       <div
@@ -68,6 +71,7 @@ import TeamBadge from "../ui/TeamBadge.vue";
 const props = defineProps<{
   match: KnockoutMatch;
   simulatedWinnerId?: number;
+  heading?: string;
 }>();
 
 const emit = defineEmits<{

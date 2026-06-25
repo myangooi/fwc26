@@ -8,6 +8,7 @@
         <BracketMatch
           :match="match"
           :simulated-winner-id="simulatedWinners[match.id]"
+          :heading="match.heading"
         />
       </div>
     </div>

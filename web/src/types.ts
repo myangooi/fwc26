@@ -60,6 +60,7 @@ export interface KnockoutMatch {
   winner: { id: number; name: string; tla?: string; crest?: string } | null;
   score?: { home: number; away: number };
   status?: 'SCHEDULED' | 'TIMED' | 'IN_PLAY' | 'PAUSED' | 'FINISHED';
+  heading?: string;
 }
 
 export interface KnockoutRound {

@@ -26,6 +26,12 @@ const BRACKET_PROGRESSION: Record<number, { match: number; pos: 'home' | 'away' 
   101: { match: 103, pos: 'home' }, 102: { match: 103, pos: 'away' },
 };
 
+// loser of matchId goes to nextMatchId as home or away team
+const LOSER_PROGRESSION: Record<number, { match: number; pos: 'home' | 'away' }> = {
+  101: { match: 104, pos: 'home' },
+  102: { match: 104, pos: 'away' },
+};
+
 // Match order within each round — pairs that feed the same next-round match are adjacent.
 // First half = left bracket (→ SF 101), second half = right bracket (→ SF 102).
 const ROUND_MATCH_IDS: { name: string; ids: number[] }[] = [
@@ -34,6 +40,7 @@ const ROUND_MATCH_IDS: { name: string; ids: number[] }[] = [
   { name: 'Quarter-finals', ids: [97,98,  99,100] },
   { name: 'Semi-finals',    ids: [101, 102] },
   { name: 'Final',          ids: [103] },
+  { name: 'Third Place',    ids: [104] },
 ];
 
 type TeamSlot = KnockoutMatch['homeTeam'];
@@ -149,6 +156,23 @@ export function buildAllKnockoutRounds(
     if (!next) continue;
     if (prog.pos === 'home') next.homeTeam = winnerTeam;
     else next.awayTeam = winnerTeam;
+  }
+
+  // Propagate losers of semi-finals to third place match
+  for (const [matchId, match] of matchMap) {
+    const prog = LOSER_PROGRESSION[matchId];
+    if (!prog) continue;
+    const winnerId = match.winner?.id ?? knockoutWinners[matchId];
+    if (winnerId == null) continue;
+    const loserTeam =
+      winnerId === match.homeTeam?.id ? match.awayTeam :
+      winnerId === match.awayTeam?.id ? match.homeTeam :
+      null;
+    if (!loserTeam) continue;
+    const next = matchMap.get(prog.match);
+    if (!next) continue;
+    if (prog.pos === 'home') next.homeTeam = loserTeam;
+    else next.awayTeam = loserTeam;
   }
 
   // Assemble rounds in bracket order

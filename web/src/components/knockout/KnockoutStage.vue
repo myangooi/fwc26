@@ -107,13 +107,13 @@ const nonFinalRounds = computed(() =>
   filledRounds.value.filter((r) => r.name !== "Final"),
 );
 
-const finalRound = computed(
-  () =>
-    filledRounds.value.find((r) => r.name === "Final") ?? {
-      name: "Final",
-      matches: [makePlaceholder()],
-    },
-);
+const finalRound = computed(() => {
+  const final = filledRounds.value.find((r) => r.name === "Final");
+  const thirdPlace = props.rounds.find((r) => r.name === "Third Place");
+  const finalMatches = (final?.matches ?? [makePlaceholder()]).map(m => ({ ...m, heading: 'Final' }));
+  const thirdMatches = (thirdPlace?.matches ?? [makePlaceholder()]).map(m => ({ ...m, heading: '3rd Place' }));
+  return { name: "Final", matches: [...finalMatches, ...thirdMatches] };
+});
 
 const leftRounds = computed(() =>
   nonFinalRounds.value.map((r) => ({
