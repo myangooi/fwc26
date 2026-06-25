@@ -1,0 +1,10 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": ["env.d.ts", "src/**/*", "test/**/*"],
+  "compilerOptions": {
+    "composite": true,
+    "baseUrl": ".",
+    "strict": true
+  },
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
