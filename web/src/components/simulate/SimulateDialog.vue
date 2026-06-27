@@ -13,6 +13,24 @@
       </div>
     </div>
 
+    <!-- datepicker strip -->
+    <div v-if="maxDate" class="flex items-center gap-2 px-4 py-2 border-b border-gray-700 flex-shrink-0">
+      <span class="text-xs text-gray-400 flex-shrink-0">Rewind to</span>
+      <input
+        type="date"
+        :min="minDate"
+        :max="maxDate"
+        :value="state.cutoffDate ?? ''"
+        @change="onDateChange"
+        class="flex-1 min-w-0 bg-gray-800 border border-gray-600 rounded text-white text-sm px-2 py-1 [color-scheme:dark]"
+      />
+      <button
+        v-if="state.cutoffDate"
+        @click="setCutoffDate(null)"
+        class="text-gray-400 hover:text-white text-sm leading-none flex-shrink-0"
+      >✕</button>
+    </div>
+
     <!-- tabs -->
     <div class="flex border-b border-gray-700 flex-shrink-0">
       <button
@@ -118,16 +136,34 @@ import { ref, computed } from 'vue';
 import type { Group, Fixture } from '../../types';
 import { useSimulation } from '../../composables/useSimulation';
 
-const props = defineProps<{ groups: Group[]; permanent?: boolean }>();
+const props = defineProps<{ groups: Group[]; originalGroups: Group[]; permanent?: boolean }>();
 defineEmits<{ close: [] }>();
 
-const { state, setGroupScore, clearGroupScore, reset } = useSimulation();
+const { state, setGroupScore, clearGroupScore, setCutoffDate, reset } = useSimulation();
 
 const activeTab = ref<'Fixtures' | 'Results'>('Fixtures');
 
 const hasSimulation = computed(
   () => Object.keys(state.groupScores).length > 0 || Object.keys(state.knockoutWinners).length > 0
 );
+
+const minDate = computed<string | undefined>(() => {
+  const dates = props.originalGroups.flatMap(g => g.fixtures.map(f => f.date.slice(0, 10)));
+  return dates.length ? dates.reduce((a, b) => (a < b ? a : b)) : undefined;
+});
+
+const maxDate = computed<string | undefined>(() => {
+  const dates = props.originalGroups
+    .flatMap(g => g.fixtures)
+    .filter((f): f is Fixture & { status: 'FINISHED' } => f.status === 'FINISHED')
+    .map(f => f.date.slice(0, 10));
+  return dates.length ? dates.reduce((a, b) => (a > b ? a : b)) : undefined;
+});
+
+function onDateChange(event: Event): void {
+  const val = (event.target as HTMLInputElement).value;
+  setCutoffDate(val || null);
+}
 
 function collectByGroup(predicate: (f: Fixture) => boolean) {
   const result: { groupName: string; fixtures: Fixture[] }[] = [];

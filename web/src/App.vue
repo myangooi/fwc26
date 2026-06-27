@@ -53,7 +53,7 @@
             />
 
             <template v-else>
-              <GroupStage v-if="groups" :groups="groups.groups" />
+              <GroupStage v-if="groups" :groups="effectiveGroups" />
               <KnockoutStage v-if="groups" :rounds="knockoutRounds" />
             </template>
           </div>
@@ -61,7 +61,8 @@
 
         <SimulateDialog
           v-if="groups && (isWide || showSimulate)"
-          :groups="groups.groups"
+          :groups="effectiveGroups"
+          :original-groups="groups.groups"
           :permanent="isWide"
           @close="showSimulate = false"
         />
@@ -75,7 +76,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useWC2026 } from "./composables/useWC2026";
-import { useSimulation } from "./composables/useSimulation";
+import { useSimulation, applyDateCutoff } from "./composables/useSimulation";
 import { buildAllKnockoutRounds } from "./composables/useKnockoutQualification";
 import ErrorBanner from "./components/ui/ErrorBanner.vue";
 import GroupStage from "./components/group/GroupStage.vue";
@@ -105,10 +106,14 @@ onMounted(() => {
 });
 onUnmounted(() => window.removeEventListener("resize", onResize));
 
+const effectiveGroups = computed(() =>
+  applyDateCutoff(groups.value?.groups ?? [], state.cutoffDate)
+);
+
 const knockoutRounds = computed(() => {
   if (!groups.value) return [];
   return buildAllKnockoutRounds(
-    groups.value.groups,
+    effectiveGroups.value,
     state.groupScores,
     state.knockoutWinners,
   );
