@@ -10,10 +10,11 @@
         class="flex justify-around gap-4 pb-4 items-stretch w-max min-w-full"
       >
         <BracketRound
-          v-for="round in filledRounds"
+          v-for="round in mobileRounds"
           :key="round.name"
           :round="round"
           :simulated-winners="state.knockoutWinners"
+          :centered="round.name === 'Final'"
         />
       </div>
     </div>
@@ -35,6 +36,7 @@
           :round="finalRound"
           :simulated-winners="state.knockoutWinners"
           compact
+          centered
         />
         <BracketRound
           v-for="round in rightRounds"
@@ -114,6 +116,10 @@ const finalRound = computed(() => {
   const thirdMatches = (thirdPlace?.matches ?? [makePlaceholder()]).map(m => ({ ...m, heading: '3rd Place' }));
   return { name: "Final", matches: [...finalMatches, ...thirdMatches] };
 });
+
+const mobileRounds = computed<KnockoutRound[]>(() =>
+  filledRounds.value.map((r) => (r.name === "Final" ? finalRound.value : r)),
+);
 
 const leftRounds = computed(() =>
   nonFinalRounds.value.map((r) => ({
