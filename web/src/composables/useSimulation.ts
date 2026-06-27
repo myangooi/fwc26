@@ -1,7 +1,7 @@
 import { reactive } from 'vue';
 
 interface SimulationState {
-  groupScores: Record<number, { home: number; away: number }>;
+  groupScores: Record<number, { home: number | null; away: number | null }>;
   knockoutWinners: Record<number, number>;
   tcsScores: Record<number, number>;
 }
@@ -14,7 +14,7 @@ const state = reactive<SimulationState>({
 });
 
 export function useSimulation() {
-  function setGroupScore(fixtureId: number, home: number, away: number): void {
+  function setGroupScore(fixtureId: number, home: number | null, away: number | null): void {
     state.groupScores[fixtureId] = { home, away };
   }
 

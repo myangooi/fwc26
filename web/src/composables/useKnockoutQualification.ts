@@ -59,7 +59,7 @@ function teamSlot(groups: Group[], teamId: number, fallback: { id: number; name:
 
 export function buildR32Round(
   groups: Group[],
-  simulatedScores: Record<number, { home: number; away: number }>,
+  simulatedScores: Record<number, { home: number | null; away: number | null }>,
 ): KnockoutRound {
   // standings per group letter
   const standings: Record<string, ReturnType<typeof computeGroupStandings>> = {};
@@ -116,7 +116,7 @@ const MOCK_RESULTS: Record<number, { home: number; away: number }> = {};
 
 export function buildAllKnockoutRounds(
   groups: Group[],
-  simulatedScores: Record<number, { home: number; away: number }>,
+  simulatedScores: Record<number, { home: number | null; away: number | null }>,
   knockoutWinners: Record<number, number>,
 ): KnockoutRound[] {
   const r32 = buildR32Round(groups, simulatedScores);

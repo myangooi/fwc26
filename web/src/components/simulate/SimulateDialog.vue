@@ -153,12 +153,20 @@ function simScore(id: number) {
 function onInput(fixtureId: number, side: 'home' | 'away', event: Event): void {
   const raw = (event.target as HTMLInputElement).value;
   if (raw === '') {
-    clearGroupScore(fixtureId);
+    const existing = state.groupScores[fixtureId];
+    if (!existing) return;
+    const newHome = side === 'home' ? null : existing.home;
+    const newAway = side === 'away' ? null : existing.away;
+    if (newHome === null && newAway === null) {
+      clearGroupScore(fixtureId);
+    } else {
+      setGroupScore(fixtureId, newHome, newAway);
+    }
     return;
   }
   const val = parseInt(raw, 10);
   if (isNaN(val)) return;
-  const existing = state.groupScores[fixtureId] ?? { home: 0, away: 0 };
+  const existing = state.groupScores[fixtureId] ?? { home: null, away: null };
   setGroupScore(
     fixtureId,
     side === 'home' ? val : existing.home,

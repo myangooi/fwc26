@@ -17,7 +17,7 @@ function fairPlayPoints(teamId: number, fixtures: Fixture[]): number {
 
 function fromFixtures(
   group: Group,
-  simulatedScores: Record<number, { home: number; away: number }>
+  simulatedScores: Record<number, { home: number | null; away: number | null }>
 ): Map<number, StandingEntry> {
   const map = new Map<number, StandingEntry>();
   for (const t of group.teams) {
@@ -29,7 +29,9 @@ function fromFixtures(
   }
   for (const f of group.fixtures) {
     const simAllowed = f.status === 'SCHEDULED' || f.status === 'TIMED';
-    const score = simAllowed ? (simulatedScores[f.id] ?? f.score) : f.score;
+    const sim = simulatedScores[f.id];
+    const simComplete = sim && sim.home !== null && sim.away !== null;
+    const score = simAllowed && simComplete ? (sim as { home: number; away: number }) : f.score;
     if (!score) continue;
     const home = map.get(f.homeTeam.id)!;
     const away = map.get(f.awayTeam.id)!;
@@ -53,14 +55,16 @@ function fromFixtures(
 function h2hStats(
   teams: StandingEntry[],
   fixtures: Fixture[],
-  simulatedScores: Record<number, { home: number; away: number }>
+  simulatedScores: Record<number, { home: number | null; away: number | null }>
 ): Map<number, { points: number; gd: number; gf: number }> {
   const ids = new Set(teams.map(t => t.team.id));
   const stats = new Map(teams.map(t => [t.team.id, { points: 0, gd: 0, gf: 0 }]));
   for (const f of fixtures) {
     if (!ids.has(f.homeTeam.id) || !ids.has(f.awayTeam.id)) continue;
     const simAllowed = f.status === 'SCHEDULED' || f.status === 'TIMED';
-    const score = simAllowed ? (simulatedScores[f.id] ?? f.score) : f.score;
+    const sim = simulatedScores[f.id];
+    const simComplete = sim && sim.home !== null && sim.away !== null;
+    const score = simAllowed && simComplete ? (sim as { home: number; away: number }) : f.score;
     if (!score) continue;
     const h = stats.get(f.homeTeam.id)!;
     const a = stats.get(f.awayTeam.id)!;
@@ -76,7 +80,7 @@ function h2hStats(
 function sortGroup(
   teams: StandingEntry[],
   fixtures: Fixture[],
-  simulatedScores: Record<number, { home: number; away: number }>,
+  simulatedScores: Record<number, { home: number | null; away: number | null }>,
   fifaRankings: Record<number, number>,
   tcsScores: Record<number, number> = {}
 ): StandingEntry[] {
@@ -104,7 +108,7 @@ function sortGroup(
 
 export function computeGroupStandings(
   group: Group,
-  simulatedScores: Record<number, { home: number; away: number }>,
+  simulatedScores: Record<number, { home: number | null; away: number | null }>,
   fifaRankings: Record<number, number>,
   tcsScores: Record<number, number> = {}
 ): StandingEntry[] {
@@ -137,7 +141,7 @@ export interface ThirdPlaceEntry extends StandingEntry {
 
 export function getBestThirdPlace(
   allGroups: Group[],
-  simulatedScores: Record<number, { home: number; away: number }>,
+  simulatedScores: Record<number, { home: number | null; away: number | null }>,
   fifaRankings: Record<number, number>,
   tcsScores: Record<number, number> = {}
 ): ThirdPlaceEntry[] {
@@ -169,7 +173,7 @@ export function getBestThirdPlace(
 // at the point where TCS becomes the deciding factor (after fair play, before FIFA rank).
 export function findGroupTiedIds(
   group: Group,
-  simulatedScores: Record<number, { home: number; away: number }>,
+  simulatedScores: Record<number, { home: number | null; away: number | null }>,
   fifaRankings: Record<number, number>,
   tcsScores: Record<number, number> = {}
 ): Set<number> {
@@ -196,7 +200,7 @@ export function findGroupTiedIds(
 // Returns team IDs among 3rd-place teams that are tied before TCS becomes deciding.
 export function findThirdPlaceTiedIds(
   allGroups: Group[],
-  simulatedScores: Record<number, { home: number; away: number }>,
+  simulatedScores: Record<number, { home: number | null; away: number | null }>,
   fifaRankings: Record<number, number>,
   tcsScores: Record<number, number> = {}
 ): Set<number> {
