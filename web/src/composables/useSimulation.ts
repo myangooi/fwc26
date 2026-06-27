@@ -1,9 +1,11 @@
 import { reactive } from 'vue';
+import type { Group } from '../types';
 
 interface SimulationState {
   groupScores: Record<number, { home: number | null; away: number | null }>;
   knockoutWinners: Record<number, number>;
   tcsScores: Record<number, number>;
+  cutoffDate: string | null;
 }
 
 // Module-level singleton — all components share the same reactive state
@@ -11,7 +13,21 @@ const state = reactive<SimulationState>({
   groupScores: {},
   knockoutWinners: {},
   tcsScores: {},
+  cutoffDate: null,
 });
+
+export function applyDateCutoff(groups: Group[], cutoffDate: string | null): Group[] {
+  if (!cutoffDate) return groups;
+  return groups.map(group => ({
+    ...group,
+    fixtures: group.fixtures.map(f => {
+      if (f.status === 'FINISHED' && f.date.slice(0, 10) > cutoffDate) {
+        return { ...f, status: 'SCHEDULED' as const, score: null };
+      }
+      return f;
+    }),
+  }));
+}
 
 export function useSimulation() {
   function setGroupScore(fixtureId: number, home: number | null, away: number | null): void {
@@ -38,11 +54,25 @@ export function useSimulation() {
     delete state.tcsScores[teamId];
   }
 
+  function setCutoffDate(date: string | null): void {
+    state.cutoffDate = date;
+  }
+
   function reset(): void {
     state.groupScores = {};
     state.knockoutWinners = {};
     state.tcsScores = {};
+    // cutoffDate intentionally not cleared
   }
 
-  return { state, setGroupScore, clearGroupScore, setKnockoutWinner, setTCS, clearTCS, reset };
+  return {
+    state,
+    setGroupScore,
+    clearGroupScore,
+    setKnockoutWinner,
+    setTCS,
+    clearTCS,
+    setCutoffDate,
+    reset,
+  };
 }
