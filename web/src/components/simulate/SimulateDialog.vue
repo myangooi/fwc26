@@ -149,7 +149,11 @@ const hasSimulation = computed(
 
 const minDate = computed<string | undefined>(() => {
   const dates = props.originalGroups.flatMap(g => g.fixtures.map(f => f.date.slice(0, 10)));
-  return dates.length ? dates.reduce((a, b) => (a < b ? a : b)) : undefined;
+  if (!dates.length) return undefined;
+  const earliest = dates.reduce((a, b) => (a < b ? a : b));
+  const d = new Date(earliest);
+  d.setUTCDate(d.getUTCDate() - 1);
+  return d.toISOString().slice(0, 10);
 });
 
 const maxDate = computed<string | undefined>(() => {
