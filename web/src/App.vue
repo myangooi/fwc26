@@ -75,6 +75,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
+import type { KnockoutMatch } from "./types";
 import { useWC2026 } from "./composables/useWC2026";
 import { useSimulation, applyDateCutoff } from "./composables/useSimulation";
 import { buildAllKnockoutRounds } from "./composables/useKnockoutQualification";
@@ -84,7 +85,7 @@ import KnockoutStage from "./components/knockout/KnockoutStage.vue";
 import SimulateDialog from "./components/simulate/SimulateDialog.vue";
 import HowToUseDialog from "./components/ui/HowToUseDialog.vue";
 
-const { groups, loading, error, fetchData } = useWC2026();
+const { groups, knockout, loading, error, fetchData } = useWC2026();
 const { state } = useSimulation();
 
 const showSimulate = ref(false);
@@ -112,10 +113,15 @@ const effectiveGroups = computed(() =>
 
 const knockoutRounds = computed(() => {
   if (!groups.value) return [];
+  const realMatchData: Record<number, KnockoutMatch> = {};
+  for (const round of (knockout.value?.rounds ?? [])) {
+    for (const m of round.matches) realMatchData[m.id] = m;
+  }
   return buildAllKnockoutRounds(
     effectiveGroups.value,
     state.groupScores,
     state.knockoutWinners,
+    realMatchData,
   );
 });
 </script>

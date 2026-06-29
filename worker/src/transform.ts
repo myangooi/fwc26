@@ -122,6 +122,10 @@ export function transformToKnockoutBlob(matches: FDMatch[]): KnockoutBlob {
             : m.score.winner === "AWAY_TEAM" && m.awayTeam
               ? { id: m.awayTeam.id, name: m.awayTeam.name, tla: m.awayTeam.tla, crest: m.awayTeam.crest }
               : null,
+        score: m.score.fullTime.home !== null && m.score.fullTime.away !== null
+          ? { home: m.score.fullTime.home, away: m.score.fullTime.away }
+          : undefined,
+        status: m.status,
       })),
   }));
 

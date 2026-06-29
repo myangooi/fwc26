@@ -60,6 +60,8 @@ export interface KnockoutMatch {
   homeTeam: { id: number; name: string; tla?: string; crest?: string } | null;
   awayTeam: { id: number; name: string; tla?: string; crest?: string } | null;
   winner: { id: number; name: string; tla?: string; crest?: string } | null;
+  score?: { home: number; away: number };
+  status?: string;
 }
 
 export interface KnockoutRound {

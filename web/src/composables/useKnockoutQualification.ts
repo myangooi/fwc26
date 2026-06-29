@@ -111,13 +111,11 @@ export function buildR32Round(
   return { name: 'Round of 32', matches };
 }
 
-// Mock results for finished knockout matches — keyed by match ID
-const MOCK_RESULTS: Record<number, { home: number; away: number }> = {};
-
 export function buildAllKnockoutRounds(
   groups: Group[],
   simulatedScores: Record<number, { home: number | null; away: number | null }>,
   knockoutWinners: Record<number, number>,
+  realMatchData: Record<number, KnockoutMatch> = {},
 ): KnockoutRound[] {
   const r32 = buildR32Round(groups, simulatedScores);
 
@@ -130,16 +128,15 @@ export function buildAllKnockoutRounds(
     }
   }
 
-  // Apply mock results — sets score, status, and winner field
+  // Apply real match data — overrides computed teams/scores for confirmed results
   for (const [matchId, match] of matchMap) {
-    const mock = MOCK_RESULTS[matchId];
-    if (!mock) continue;
-    match.score = mock;
-    match.status = 'FINISHED';
-    match.winner =
-      mock.home > mock.away ? match.homeTeam :
-      mock.away > mock.home ? match.awayTeam :
-      null;
+    const real = realMatchData[matchId];
+    if (!real) continue;
+    if (real.homeTeam) match.homeTeam = real.homeTeam;
+    if (real.awayTeam) match.awayTeam = real.awayTeam;
+    if (real.score) match.score = real.score;
+    if (real.status) match.status = real.status;
+    if (real.winner) match.winner = real.winner;
   }
 
   // Propagate winners forward — finished matches auto-advance, simulated matches use knockoutWinners
